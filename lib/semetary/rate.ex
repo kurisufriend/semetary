@@ -1,8 +1,8 @@
 defmodule Semetary.Rate do
   use GenServer
 
-  def start_link(_last_activity) do
-    GenServer.start_link(__MODULE__, _last_activity, name: :ratelimiter)
+  def start_link(last_activity) do
+    GenServer.start_link(__MODULE__, last_activity, name: :ratelimiter)
   end
 
   @impl true
