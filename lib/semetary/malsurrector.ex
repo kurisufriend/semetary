@@ -45,7 +45,6 @@ defmodule Semetary.Malsurrector do
           @endpoints |> Map.keys |> Enum.each(fn key ->
             if link |> String.contains?(key) do
               @endpoints[key]["handler"].(link)
-              IO.puts(post["com"])
             end
           end)
           # IO.puts(link)
@@ -56,8 +55,8 @@ defmodule Semetary.Malsurrector do
   end
   def handle_pastebin(link) do
     id = link |> String.split("/", trim: true) |> List.last
-    IO.puts("pastebin")
-    IO.puts(id)
+    # IO.puts("pastebin")
+    # IO.puts(id)
   end
 
   def handle_vocaroo(link) do
@@ -83,28 +82,27 @@ defmodule Semetary.Malsurrector do
       else
         raise "o shit vocaroo not 200 #{link}"
       end
-      IO.puts("vocaroo")
-      IO.puts(id)
     end
   end
 
   def handle_rentry(link) do
     id = link |> String.split("/", trim: true) |> List.last
-    IO.puts("rentry")
-    IO.puts(id)
+    # IO.puts("rentry")
+    # IO.puts(id)
   end
 
   def handle_litter(link) do
     id = link |> String.split("/", trim: true) |> List.last
-    IO.puts("litter")
-    IO.puts(id)
+    # IO.puts("litter")
+    # IO.puts(id)
   end
 
   def handle_soundgasm(link) do
     [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
-    unless File.exists?("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a") do
+    unless user == "u" or File.exists?("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a") do
       page = Req.get!(link)
       if page.status == 200 do
+        IO.puts(link)
         gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\]*.m4a/, page.body)
         |> hd
         |> Req.get!)
@@ -117,14 +115,13 @@ defmodule Semetary.Malsurrector do
       else
         raise "failed to sound the gasm #{link}"
       end
-      IO.puts("soundgasm")
-      IO.puts(id)
     end
   end
 
   defp write_if_new!(path, content) do
     unless File.exists?(path) do
       File.write!(path, content)
+      IO.puts(["wrote" , path])
     end
   end
 
