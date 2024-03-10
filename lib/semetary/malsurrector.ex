@@ -62,28 +62,30 @@ defmodule Semetary.Malsurrector do
 
   def handle_vocaroo(link) do
     id = link |> String.split("/", trim: true) |> List.last
-    heads = %{
-      "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-      "Accept-Encoding" => "gzip, deflate, br",
-      "Accept-Language" => "en-US,en;q=0.5",
-      "Connection" => "keep-alive",
-      "Host" => "media1.vocaroo.com",
-      "Referer" => "https://vocaroo.com/",
-      "Sec-Fetch-Dest" => "document",
-      "Sec-Fetch-Mode" => "navigate",
-      "Sec-Fetch-Site" => "same-site",
-      "Sec-Fetch-User" => "?1",
-      "Upgrade-Insecure-Requests" => "1",
-      "User-Agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0"
-    }
-    voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
-    if voccy.status == 200 do
-      write_if_new!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
-    else
-      raise "o shit vocaroo not 200 #{link}"
+    unless File.exists?("./data/vocaroo.com/"<>id<>".mp3") do
+      heads = %{
+        "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Encoding" => "gzip, deflate, br",
+        "Accept-Language" => "en-US,en;q=0.5",
+        "Connection" => "keep-alive",
+        "Host" => "media1.vocaroo.com",
+        "Referer" => "https://vocaroo.com/",
+        "Sec-Fetch-Dest" => "document",
+        "Sec-Fetch-Mode" => "navigate",
+        "Sec-Fetch-Site" => "same-site",
+        "Sec-Fetch-User" => "?1",
+        "Upgrade-Insecure-Requests" => "1",
+        "User-Agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0"
+      }
+      voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
+      if voccy.status == 200 do
+        write_if_new!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
+      else
+        raise "o shit vocaroo not 200 #{link}"
+      end
+      IO.puts("vocaroo")
+      IO.puts(id)
     end
-    IO.puts("vocaroo")
-    IO.puts(id)
   end
 
   def handle_rentry(link) do
@@ -100,22 +102,24 @@ defmodule Semetary.Malsurrector do
 
   def handle_soundgasm(link) do
     [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
-    page = Req.get!(link)
-    if page.status == 200 do
-      gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\]*.m4a/, page.body)
-      |> hd
-      |> Req.get!)
-      if gasm.status == 200 do
-        mkdir_if_needed!("./data/soundgasm.net/"<>user)
-        write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)
+    unless File.exists?("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a") do
+      page = Req.get!(link)
+      if page.status == 200 do
+        gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\]*.m4a/, page.body)
+        |> hd
+        |> Req.get!)
+        if gasm.status == 200 do
+          mkdir_if_needed!("./data/soundgasm.net/"<>user)
+          write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)
+        else
+          raise "failed to gasm the sound"
+        end
       else
-        raise "failed to gasm the sound"
+        raise "failed to sound the gasm #{link}"
       end
-    else
-      raise "failed to sound the gasm #{link}"
+      IO.puts("soundgasm")
+      IO.puts(id)
     end
-    IO.puts("soundgasm")
-    IO.puts(id)
   end
 
   defp write_if_new!(path, content) do
