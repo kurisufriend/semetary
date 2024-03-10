@@ -16,18 +16,18 @@ defmodule Semetary.Malsurrector do
     "pastebin.com" => %{
       "urls" => ["pastebin.com"],
       "handler" => &Semetary.Malsurrector.handle_pastebin/1
+    },
+    "soundgasm.net" => %{
+      "urls" => ["soundgasm.net"],
+      "handler" => &Semetary.Malsurrector.handle_soundgasm/1
     }
   }
 
   def init() do
     path = "./data"
-    unless File.exists?(path) do
-      File.mkdir!(path)
-    end
+    mkdir_if_needed!(path)
     @endpoints |> Map.keys |> Enum.each(fn endpoint ->
-      unless File.exists?(path<>"/"<>endpoint) do
-        File.mkdir!(path<>"/"<>endpoint)
-      end
+      mkdir_if_needed!(path<>"/"<>endpoint)
     end)
   end
 
@@ -45,6 +45,7 @@ defmodule Semetary.Malsurrector do
           @endpoints |> Map.keys |> Enum.each(fn key ->
             if link |> String.contains?(key) do
               @endpoints[key]["handler"].(link)
+              IO.puts(post["com"])
             end
           end)
           # IO.puts(link)
@@ -77,7 +78,9 @@ defmodule Semetary.Malsurrector do
     }
     voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
     if voccy.status == 200 do
-      File.write!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
+      write_if_new!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
+    else
+      raise "o shit vocaroo not 200 #{link}"
     end
     IO.puts("vocaroo")
     IO.puts(id)
@@ -93,6 +96,38 @@ defmodule Semetary.Malsurrector do
     id = link |> String.split("/", trim: true) |> List.last
     IO.puts("litter")
     IO.puts(id)
+  end
+
+  def handle_soundgasm(link) do
+    [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
+    page = Req.get!(link)
+    if page.status == 200 do
+      gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\]*.m4a/, page.body)
+      |> hd
+      |> Req.get!)
+      if gasm.status == 200 do
+        mkdir_if_needed!("./data/soundgasm.net/"<>user)
+        write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)
+      else
+        raise "failed to gasm the sound"
+      end
+    else
+      raise "failed to sound the gasm #{link}"
+    end
+    IO.puts("soundgasm")
+    IO.puts(id)
+  end
+
+  defp write_if_new!(path, content) do
+    unless File.exists?(path) do
+      File.write!(path, content)
+    end
+  end
+
+  defp mkdir_if_needed!(path) do
+    unless File.exists?(path) do
+      File.mkdir!(path)
+    end
   end
 
 
