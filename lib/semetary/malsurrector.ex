@@ -79,6 +79,7 @@ defmodule Semetary.Malsurrector do
       voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
       if voccy.status == 200 do
         write_if_new!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
+        # write_if_new!("./data/vocaroo.com/"<>id<>".mp3.meta", "#{System.os_time}")
       else
         raise "o shit vocaroo not 200 #{link}"
       end
@@ -93,8 +94,14 @@ defmodule Semetary.Malsurrector do
 
   def handle_litter(link) do
     id = link |> String.split("/", trim: true) |> List.last
-    # IO.puts("litter")
-    # IO.puts(id)
+    unless File.exists?("./data/litter.catbox.moe/"<>id) do
+      litter = Req.get!(link)
+      if litter.status == 200 do
+        write_if_new!("./data/litter.catbox.moe/"<>id, litter.body)
+      else
+        raise "OH MY GOD THEY KILLED LITTERBOX #{link}"
+      end
+    end
   end
 
   def handle_soundgasm(link) do
@@ -109,6 +116,7 @@ defmodule Semetary.Malsurrector do
         if gasm.status == 200 do
           mkdir_if_needed!("./data/soundgasm.net/"<>user)
           write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)
+          # write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a.meta", "#{System.os_time}")
         else
           raise "failed to gasm the sound"
         end
@@ -118,7 +126,7 @@ defmodule Semetary.Malsurrector do
     end
   end
 
-  defp write_if_new!(path, content) do
+  defp write_if_new!(path, content, update \\ false) do
     unless File.exists?(path) do
       File.write!(path, content)
       IO.puts(["wrote" , path])
@@ -130,6 +138,5 @@ defmodule Semetary.Malsurrector do
       File.mkdir!(path)
     end
   end
-
 
 end
