@@ -89,11 +89,15 @@ defmodule Semetary.Malsurrector do
 
   def handle_rentry(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
-    rent = Req.get!(link<>"/raw")
+      |> String.split("#", trim: true) |> hd
+    newlink = link |> String.split("#", trim: true) |> hd
+    rent = Req.get!(newlink<>"/raw")
     if rent.status == 200 do
       prospect = "./data/rentry/"<>id<>".txt"
       if File.exists?(prospect) do
         if File.read!(prospect) != rent.body do
+          # IO.inspect(File.read!(prospect))
+          # IO.inspect(rent.body)
           write_if_new!(prospect<>".#{System.os_time}", rent.body)
           write_if_new!(prospect<>".meta"<>".#{System.os_time}", Jason.encode!(post))
         end
