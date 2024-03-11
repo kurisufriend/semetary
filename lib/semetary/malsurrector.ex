@@ -3,23 +3,23 @@ defmodule Semetary.Malsurrector do
   @endpoints %{
     "rentry" => %{
       "urls" => ["rentry.co", "rentry.org"],
-      "handler" => &Semetary.Malsurrector.handle_rentry/1
+      "handler" => &Semetary.Malsurrector.handle_rentry/2
     },
     "litter.catbox.moe" => %{
       "urls" => ["litter.catbox.moe"],
-      "handler" => &Semetary.Malsurrector.handle_litter/1
+      "handler" => &Semetary.Malsurrector.handle_litter/2
     },
     "vocaroo.com" => %{
       "urls" => ["vocaroo.com"],
-      "handler" => &Semetary.Malsurrector.handle_vocaroo/1
+      "handler" => &Semetary.Malsurrector.handle_vocaroo/2
     },
     "pastebin.com" => %{
       "urls" => ["pastebin.com"],
-      "handler" => &Semetary.Malsurrector.handle_pastebin/1
+      "handler" => &Semetary.Malsurrector.handle_pastebin/2
     },
     "soundgasm.net" => %{
       "urls" => ["soundgasm.net"],
-      "handler" => &Semetary.Malsurrector.handle_soundgasm/1
+      "handler" => &Semetary.Malsurrector.handle_soundgasm/2
     }
   }
 
@@ -44,7 +44,7 @@ defmodule Semetary.Malsurrector do
           link = hd(i)
           @endpoints |> Map.keys |> Enum.each(fn key ->
             if link |> String.contains?(key) do
-              @endpoints[key]["handler"].(link)
+              @endpoints[key]["handler"].(link, post)
             end
           end)
           # IO.puts(link)
@@ -53,13 +53,13 @@ defmodule Semetary.Malsurrector do
       end
     end
   end
-  def handle_pastebin(link) do
+  def handle_pastebin(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
     # IO.puts("pastebin")
     # IO.puts(id)
   end
 
-  def handle_vocaroo(link) do
+  def handle_vocaroo(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
     unless File.exists?("./data/vocaroo.com/"<>id<>".mp3") do
       heads = %{
@@ -79,32 +79,33 @@ defmodule Semetary.Malsurrector do
       voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
       if voccy.status == 200 do
         write_if_new!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
-        # write_if_new!("./data/vocaroo.com/"<>id<>".mp3.meta", "#{System.os_time}")
+        write_if_new!("./data/vocaroo.com/"<>id<>".mp3.meta", Jason.encode!(post))
       else
         raise "o shit vocaroo not 200 #{link}"
       end
     end
   end
 
-  def handle_rentry(link) do
+  def handle_rentry(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
     # IO.puts("rentry")
     # IO.puts(id)
   end
 
-  def handle_litter(link) do
+  def handle_litter(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
     unless File.exists?("./data/litter.catbox.moe/"<>id) do
       litter = Req.get!(link)
       if litter.status == 200 do
         write_if_new!("./data/litter.catbox.moe/"<>id, litter.body)
+        write_if_new!("./data/litter.catbox.moe/"<>id<>".meta", Jason.encode!(post))
       else
         raise "OH MY GOD THEY KILLED LITTERBOX #{link}"
       end
     end
   end
 
-  def handle_soundgasm(link) do
+  def handle_soundgasm(link, post) do
     [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
     unless user == "u" or File.exists?("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a") do
       page = Req.get!(link)
@@ -116,7 +117,7 @@ defmodule Semetary.Malsurrector do
         if gasm.status == 200 do
           mkdir_if_needed!("./data/soundgasm.net/"<>user)
           write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)
-          # write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a.meta", "#{System.os_time}")
+          write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a.meta", Jason.encode!(post))
         else
           raise "failed to gasm the sound"
         end
