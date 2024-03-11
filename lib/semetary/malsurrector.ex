@@ -9,8 +9,8 @@ defmodule Semetary.Malsurrector do
       "urls" => ["litter.catbox.moe"],
       "handler" => &Semetary.Malsurrector.handle_litter/2
     },
-    "vocaroo.com" => %{
-      "urls" => ["vocaroo.com"],
+    "vocaroo" => %{
+      "urls" => ["vocaroo.com", "voca.ro"],
       "handler" => &Semetary.Malsurrector.handle_vocaroo/2
     },
     "pastebin.com" => %{
@@ -44,7 +44,7 @@ defmodule Semetary.Malsurrector do
           bare_link = hd(i)
           link = Enum.join([(if String.starts_with?(bare_link, "http"), do: "", else: "https://"), bare_link])
           @endpoints |> Map.keys |> Enum.each(fn key ->
-            if link |> String.contains?(key) do
+            if link |> String.contains?(@endpoints[key]["urls"]) do
               @endpoints[key]["handler"].(link, post)
             end
           end)
@@ -62,7 +62,7 @@ defmodule Semetary.Malsurrector do
 
   def handle_vocaroo(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
-    unless File.exists?("./data/vocaroo.com/"<>id<>".mp3") do
+    unless File.exists?("./data/vocaroo/"<>id<>".mp3") do
       heads = %{
         "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Encoding" => "gzip, deflate, br",
@@ -79,8 +79,8 @@ defmodule Semetary.Malsurrector do
       }
       voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
       if voccy.status == 200 do
-        write_if_new!("./data/vocaroo.com/"<>id<>".mp3", voccy.body)
-        write_if_new!("./data/vocaroo.com/"<>id<>".mp3.meta", Jason.encode!(post))
+        write_if_new!("./data/vocaroo/"<>id<>".mp3", voccy.body)
+        write_if_new!("./data/vocaroo/"<>id<>".mp3.meta", Jason.encode!(post))
       else
         raise "o shit vocaroo not 200 #{link}"
       end
