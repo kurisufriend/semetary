@@ -41,7 +41,8 @@ defmodule Semetary.Malsurrector do
       if instances != [] do
         instances
         |> Enum.each(fn i ->
-          link = hd(i)
+          bare_link = hd(i)
+          link = Enum.join([(if String.starts_with?(bare_link, "http"), do: "", else: "https://"), bare_link])
           @endpoints |> Map.keys |> Enum.each(fn key ->
             if link |> String.contains?(key) do
               @endpoints[key]["handler"].(link, post)
@@ -88,8 +89,19 @@ defmodule Semetary.Malsurrector do
 
   def handle_rentry(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
-    # IO.puts("rentry")
-    # IO.puts(id)
+    rent = Req.get!(link<>"/raw")
+    if rent.status == 200 do
+      prospect = "./data/rentry/"<>id<>".txt"
+      if File.exists?(prospect) do
+        if File.read!(prospect) != rent.body do
+          write_if_new!(prospect<>".#{System.os_time}", rent.body)
+          write_if_new!(prospect<>".meta"<>".#{System.os_time}", Jason.encode!(post))
+        end
+      else
+        write_if_new!(prospect, rent.body)
+        write_if_new!(prospect<>".meta", Jason.encode!(post))
+      end
+    end
   end
 
   def handle_litter(link, post) do
