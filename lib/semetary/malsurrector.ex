@@ -94,16 +94,18 @@ defmodule Semetary.Malsurrector do
     rent = Req.get!(newlink<>"/raw")
     if rent.status == 200 do
       prospect = "./data/rentry/"<>id<>".txt"
-      if File.exists?(prospect) do
-        if File.read!(prospect) != rent.body do
-          # IO.inspect(File.read!(prospect))
-          # IO.inspect(rent.body)
-          write_if_new!(prospect<>".#{System.os_time}", rent.body)
-          write_if_new!(prospect<>".meta"<>".#{System.os_time}", Jason.encode!(post))
+      if File.exists?(prospect<>".latest") do
+        if File.read!(prospect<>".latest") != rent.body do
+          File.write!(prospect<>".#{System.os_time}", rent.body)
+          File.write!(prospect<>".latest", rent.body)
+          File.write!(prospect<>".meta"<>".#{System.os_time}", Jason.encode!(post))
+        else
+          # if it exists and is not diff, don't do anything (comment to make flow clear) (gay) (penis)
         end
       else
-        write_if_new!(prospect, rent.body)
-        write_if_new!(prospect<>".meta", Jason.encode!(post))
+        File.write!(prospect<>".#{System.os_time}", rent.body)
+        File.write!(prospect<>".latest", rent.body)
+        File.write!(prospect<>".meta"<>".#{System.os_time}", Jason.encode!(post))
       end
     end
   end
