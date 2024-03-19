@@ -4,9 +4,10 @@ defmodule Semetary.Imageboard do
   def wget(uri, pool \\ :default) do
     if GenServer.call(:ratelimiter, :activate) == :goahead do
       res = try do
-        Semetary.Sonky.proxied_get(uri, pool)
+        Semetary.Sonky.proxied_get!(uri, pool)
       rescue e ->
-        IO.puts("yo, shit #{uri} failed w #{e}, retrying")
+        IO.puts("yo, shit #{uri} failed w, retrying")
+        IO.inspect(e)
         wget(uri, pool)
       end
 

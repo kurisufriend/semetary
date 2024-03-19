@@ -33,7 +33,12 @@ defmodule Semetary.BoardGS do
             }
           )
         else
-          send(String.to_atom(state.board<>to_string(thread["no"])<>"ThreadGS"), {:update, page["page"], thread["replies"], false})
+          try do
+            send(String.to_atom(state.board<>to_string(thread["no"])<>"ThreadGS"), {:update, page["page"], thread["replies"], false})
+          rescue e ->
+            IO.puts("failed to send update signal to thread #{state.board}/"<>to_string(thread["no"])<>" could it be a sticky or something?")
+            IO.inspect(e)
+          end
         end
       end)
     end)

@@ -32,7 +32,7 @@ defmodule Semetary.Sonky.Pool do
 end
 defmodule Semetary.Sonky do
 
-  def proxied_get(uri, pool \\ :default) do
+  def proxied_get!(uri, pool \\ :default) do
     proxy = GenServer.call(:proxy_pool, :get)
     if pool != :noproxy do
       HTTPoison.get!(uri, [], [
