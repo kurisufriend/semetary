@@ -36,7 +36,7 @@ defmodule Semetary.Malsurrector do
       body = post["com"] |> String.replace("<wbr>", "")
       url_capture = @endpoints |> Map.keys |> Enum.map(fn key -> @endpoints[key]["urls"] end)
         |> List.flatten |> Enum.join("|")
-      instances = (Regex.compile!("(|https:\/\/|http:\/\/)(#{url_capture})\/[^ \n<>]*")
+      instances = (Regex.compile!("(|https:\/\/|http:\/\/)(#{url_capture})\/[^ \n<>\\(\\)]*")
        |> Regex.scan(body))
       if instances != [] do
         instances
@@ -129,7 +129,7 @@ defmodule Semetary.Malsurrector do
       page = Req.get!(link)
       if page.status == 200 do
         IO.puts(link)
-        gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\]*.m4a/, page.body)
+        gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\\)\()]*.m4a/, page.body)
         |> hd
         |> Req.get!)
         if gasm.status == 200 do
