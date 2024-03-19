@@ -11,7 +11,17 @@ defmodule Semetary.Imageboard do
         wget(uri, pool)
       end
 
-      %HTTPoison.Response{res | body: res.body |> Jason.decode!}
+      if is_binary(res.body) do
+        try do
+          %HTTPoison.Response{res | body: res.body |> Jason.decode!}
+        catch e ->
+          raise("shit's fucked! i don't give a good goddamn")
+          IO.inspect(e)
+          IO.inspect(res)
+        end
+      else
+        res
+      end
       # Req.get!(uri)
     else
       Process.sleep(1_000)
