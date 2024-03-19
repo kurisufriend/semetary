@@ -10,7 +10,8 @@ defmodule Semetary.Sup do
     children = [
       {Semetary.Rate, [nil]},
       {DynamicSupervisor, strategy: :one_for_one, name: MomSupervisor},
-      {Semetary.BoardDad, [nil]}
+      {Semetary.BoardDad, [nil]},
+      {Semetary.Sonky.Pool, [nil]}
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end
