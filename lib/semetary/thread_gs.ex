@@ -36,7 +36,7 @@ defmodule Semetary.ThreadGS do
   def handle_info({:update, new_page, new_replynum, first_run}, state) do
     if (new_replynum > state.reply_number) or first_run do
       res = Semetary.Imageboard.thread(state.board, state.no)
-      if res.status == 200 and hd(res.body["posts"])["archived"] != 1 do
+      if res.status_code == 200 and hd(res.body["posts"])["archived"] != 1 do
         res.body["posts"]
         |> Enum.each(fn post ->
           send(self(), {:addpost, post})
