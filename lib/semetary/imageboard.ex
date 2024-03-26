@@ -3,6 +3,7 @@ defmodule Semetary.Imageboard do
   @baseurl "https://a.4cdn.org"
   def wget(uri, pool \\ :default) do
     if GenServer.call(:ratelimiter, :activate) == :goahead do
+
       res = try do
         Semetary.Sonky.proxied_get!(uri, pool)
       rescue e ->
@@ -24,7 +25,7 @@ defmodule Semetary.Imageboard do
       end
       # Req.get!(uri)
     else
-      Process.sleep(10)
+      Process.sleep(100)
       wget(uri)
     end
   end
@@ -35,7 +36,7 @@ defmodule Semetary.Imageboard do
     wget(@baseurl<>"/"<>board<>"/threads.json", String.to_atom(board<>"_board_pool"))
   end
   def thread(board, id) do
-    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>to_string(id)<>"_pool"))
+    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>"_board_pool"))
   end
   def catalog(board) do
     wget(@baseurl<>"/"<>board<>"/catalog.json", :noproxy)

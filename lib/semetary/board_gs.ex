@@ -12,6 +12,12 @@ defmodule Semetary.BoardGS do
   end
 
   @impl true
+  def handle_info({:checkout, no}, state) do
+    state = %Semetary.Imageboard.Board{state | threads: Map.delete(state.threads, no)}
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info(:update, state) do
     IO.puts("upd8ing "<>state.board)
     res = Semetary.Imageboard.threads(state.board)
@@ -38,6 +44,8 @@ defmodule Semetary.BoardGS do
           rescue e ->
             IO.puts("failed to send update signal to thread #{state.board}/"<>to_string(thread["no"])<>" could it be a sticky or something?")
             IO.inspect(e)
+            IO.puts("regardless, taking out out of the list")
+            send(self(), {:checkout, thread["no"]})
           end
         end
       end)
@@ -47,7 +55,7 @@ defmodule Semetary.BoardGS do
 
   def go_forever(proc) do
     send(proc, :update)
-    Process.sleep(60_000)
+    Process.sleep(60_000 * 5)
     go_forever(proc)
   end
 
