@@ -15,12 +15,12 @@ defmodule Semetary.Rate do
 
   @impl true
   def handle_call({:activate, pool}, _, last_activity_map) do
-    {last_activity, last_activity_map} = last_activity_map
+    {_, last_activity_map} = last_activity_map
       |> Map.get_and_update(pool, fn cur ->
         if cur != nil, do: {cur, cur}, else: {cur, :os.system_time(:millisecond)}
       end)
     if :os.system_time(:millisecond) - Map.get(last_activity_map, pool) > @time do
-      Map.get(last_activity_map, pool, :os.system_time(:millisecond))
+      last_activity_map = Map.put(last_activity_map, pool, :os.system_time(:millisecond))
       {:reply, :goahead, last_activity_map}
     else
       {:reply, :defer, last_activity_map}
