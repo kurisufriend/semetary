@@ -40,7 +40,7 @@ defmodule Semetary.Imageboard do
     wget(@baseurl<>"/"<>board<>"/archive.json", String.to_atom(board<>"_board_pool"))
   end
   def thread(board, id) do
-    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>"_board_pool"))
+    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>"_thread_pool"))
   end
   def catalog(board) do
     wget(@baseurl<>"/"<>board<>"/catalog.json", String.to_atom(board<>"_board_pool"))
