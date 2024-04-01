@@ -5,11 +5,23 @@ defmodule Semetary.ThreadGS do
     GenServer.start_link(__MODULE__, state, name: String.to_atom(state.board<>to_string(state.no)<>"ThreadGS"))
   end
 
+  def memento_mori(board, id) do
+    Process.sleep(60_000 * 5)
+    res = Semetary.Imageboard.thread(board, id)
+    if res.status_code == 404 do
+      IO.puts("IM LEAVING BYE 404_4_sure"<>board<>to_string(id))
+      DynamicSupervisor.terminate_child(String.to_atom(board<>"BoardSupervisor"), self())
+      Process.exit(self(), :fourohfour)
+    end
+    memento_mori(board, id)
+  end
+
   @impl true
   def init(state) do
     IO.puts("watching thread "<>inspect(state))
     send(String.to_atom(state.board<>"BoardGS"), {:checkin, state.no, self()})
     send(self(), {:update, state.on_page, state.reply_number, true})
+    Task.start(fn -> memento_mori(state.board, state.no) end)
     {:ok, state}
   end
 

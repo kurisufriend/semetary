@@ -9,6 +9,7 @@ defmodule Semetary.Imageboard do
       rescue e ->
         IO.puts("yo, shit #{uri} failed w, retrying")
         IO.inspect(e)
+        Process.sleep(100)
         wget(uri, pool)
       end
 
@@ -35,11 +36,14 @@ defmodule Semetary.Imageboard do
   def threads(board) do
     wget(@baseurl<>"/"<>board<>"/threads.json", String.to_atom(board<>"_board_pool"))
   end
+  def archive(board) do
+    wget(@baseurl<>"/"<>board<>"/archive.json", String.to_atom(board<>"_board_pool"))
+  end
   def thread(board, id) do
-    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>to_string(id)<>"_pool"))
+    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>"_board_pool"))
   end
   def catalog(board) do
-    wget(@baseurl<>"/"<>board<>"/catalog.json", :noproxy)
+    wget(@baseurl<>"/"<>board<>"/catalog.json", String.to_atom(board<>"_board_pool"))
   end
 end
 

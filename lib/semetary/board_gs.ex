@@ -50,6 +50,17 @@ defmodule Semetary.BoardGS do
         end
       end)
     end)
+
+    res = Semetary.Imageboard.archive(state.board)
+    if res.status_code != 404 do
+      res.body |> Enum.each(fn id ->
+        if (pid = Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS"))) != nil do
+          IO.puts("slaughtering this archived thing "<>to_string(id))
+          DynamicSupervisor.terminate_child(String.to_atom(state.board<>"BoardSupervisor"), Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS")))
+          Process.exit(pid, :fourohfour)
+        end
+      end)
+    end
     {:noreply, state}
   end
 
