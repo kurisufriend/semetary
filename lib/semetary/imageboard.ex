@@ -4,7 +4,7 @@ defmodule Semetary.Imageboard do
   def wget(uri, pool \\ :default) do
     if !pool or GenServer.call(:ratelimiter, {:activate, pool}) == :goahead do
 
-      res = try do
+      try do
         Semetary.Sonky.proxied_get!(uri, pool)
       rescue e ->
         IO.puts("yo, shit #{uri} failed w, retrying")
@@ -13,17 +13,18 @@ defmodule Semetary.Imageboard do
         wget(uri, pool)
       end
 
-      if is_binary(res.body) and res.status_code == 200 do
-        try do
-          %HTTPoison.Response{res | body: res.body |> Jason.decode!}
-        rescue e ->
-          IO.inspect(e)
-          IO.inspect(res)
-          raise("shit's fucked! i don't give a good goddamn")
-        end
-      else
-        res
-      end
+
+      #if is_binary(res.body) and res.status_code == 200 do
+      #  try do
+      #    %HTTPoison.Response{res | body: res.body |> Jason.decode!}
+      #  rescue e ->
+      #    IO.inspect(e)
+      #    IO.inspect(res)
+      #    raise("shit's fucked! i don't give a good goddamn")
+      #  end
+      #else
+      #  res
+      #end
       # Req.get!(uri)
     else
       Process.sleep(100)

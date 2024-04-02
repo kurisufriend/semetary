@@ -77,7 +77,7 @@ defmodule Semetary.Malsurrector do
         "Upgrade-Insecure-Requests" => "1",
         "User-Agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0"
       }
-      voccy = Req.get!("https://media1.vocaroo.com/mp3/"<>id, headers: heads)
+      voccy = Semetary.Rate.rated_get!("https://media1.vocaroo.com/mp3/"<>id, :vocaroo, headers: heads)
       if voccy.status == 200 do
         write_if_new!("./data/vocaroo/"<>id<>".mp3", voccy.body)
         write_if_new!("./data/vocaroo/"<>id<>".mp3.meta", Jason.encode!(post))
@@ -91,7 +91,7 @@ defmodule Semetary.Malsurrector do
     id = link |> String.split("/", trim: true) |> List.last
       |> String.split("#", trim: true) |> hd
     newlink = link |> String.split("#", trim: true) |> hd
-    rent = Req.get!(newlink<>"/raw")
+    rent = Semetary.Rate.rated_get!(newlink<>"/raw", :rentry)
     if rent.status == 200 do
       prospect = "./data/rentry/"<>id<>".txt"
       if File.exists?(prospect<>".latest") do
@@ -113,7 +113,7 @@ defmodule Semetary.Malsurrector do
   def handle_litter(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
     unless File.exists?("./data/litter.catbox.moe/"<>id) do
-      litter = Req.get!(link)
+      litter = Semetary.Rate.rated_get!(link, :litter)
       if litter.status == 200 do
         write_if_new!("./data/litter.catbox.moe/"<>id, litter.body)
         write_if_new!("./data/litter.catbox.moe/"<>id<>".meta", Jason.encode!(post))
@@ -126,12 +126,12 @@ defmodule Semetary.Malsurrector do
   def handle_soundgasm(link, post) do
     [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
     unless user == "u" or File.exists?("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a") do
-      page = Req.get!(link)
+      page = Semetary.Rate.rated_get!(link, :soundgasm)
       if page.status == 200 do
         IO.puts(link)
         gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\\)\()]*.m4a/, page.body)
         |> hd
-        |> Req.get!)
+        |> Semetary.Rate.rated_get!(:soundgasm))
         if gasm.status == 200 do
           mkdir_if_needed!("./data/soundgasm.net/"<>user)
           write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)

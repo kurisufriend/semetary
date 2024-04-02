@@ -8,7 +8,7 @@ defmodule Semetary.ThreadGS do
   def memento_mori(board, id) do
     Process.sleep(60_000 * 5)
     res = Semetary.Imageboard.thread(board, id)
-    if res.status_code == 404 do
+    if res.status == 404 do
       IO.puts("IM LEAVING BYE 404_4_sure"<>board<>to_string(id))
       DynamicSupervisor.terminate_child(String.to_atom(board<>"BoardSupervisor"), self())
       Process.exit(self(), :fourohfour)
@@ -48,7 +48,7 @@ defmodule Semetary.ThreadGS do
   def handle_info({:update, new_page, new_replynum, first_run}, state) do
     if (new_replynum > state.reply_number) or first_run do
       res = Semetary.Imageboard.thread(state.board, state.no)
-      if res.status_code == 200 and hd(res.body["posts"])["archived"] != 1 do
+      if res.status == 200 and hd(res.body["posts"])["archived"] != 1 do
         res.body["posts"]
         |> Enum.each(fn post ->
           send(self(), {:addpost, post})

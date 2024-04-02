@@ -32,18 +32,27 @@ defmodule Semetary.Sonky.Pool do
 end
 defmodule Semetary.Sonky do
 
-  def proxied_get!(uri, pool \\ :default) do
+  def proxied_get!(uri, pool \\ :default, opts \\ []) do
     proxy = GenServer.call(:proxy_pool, :get)
     if pool != :noproxy do
-      HTTPoison.get!(uri, [], [
-        proxy: {:socks5, Enum.at(proxy, 1)|>to_charlist, Enum.at(proxy, 2)|>String.to_integer},
-        socks5_user: Enum.at(proxy, 3), socks5_pass: Enum.at(proxy, 4),
-        hackney: [pool: pool]
-      ])
+      #HTTPoison.get!(uri, [], [
+      #  proxy: {:socks5, Enum.at(proxy, 1)|>to_charlist, Enum.at(proxy, 2)|>String.to_integer},
+      #  socks5_user: Enum.at(proxy, 3), socks5_pass: Enum.at(proxy, 4),
+      #  hackney: [pool: pool]
+      #])
+      auth = Enum.at(proxy, 3)<>":"<>Enum.at(proxy, 4) |> Base.encode64
+      Req.get!(uri, [
+        connect_options: [
+          proxy: {:http, Enum.at(proxy, 1), Enum.at(proxy, 2)|>String.to_integer, []},
+          proxy_headers: [{"Proxy-Authorization", "Basic #{auth}"}]
+        ]
+      ] ++ opts
+      )
     else
-      HTTPoison.get!(uri, [], [
-        hackney: [pool: pool]
-      ])
+      #HTTPoison.get!(uri, [], [
+      #  hackney: [pool: pool]
+      #])
+      Req.get!(uri, opts)
     end
   end
 

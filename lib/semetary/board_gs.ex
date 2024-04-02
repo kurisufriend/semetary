@@ -52,7 +52,7 @@ defmodule Semetary.BoardGS do
     end)
 
     res = Semetary.Imageboard.archive(state.board)
-    if res.status_code != 404 do
+    if res.status != 404 do
       res.body |> Enum.each(fn id ->
         if (pid = Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS"))) != nil do
           IO.puts("slaughtering this archived thing "<>to_string(id))
