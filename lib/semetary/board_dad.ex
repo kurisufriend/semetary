@@ -7,7 +7,7 @@ defmodule Semetary.BoardDad do
 
   @impl true
   def init(a) do
-    ["jp"]
+    Application.fetch_env!(:semetary, :boards)
     |> Enum.each(fn board ->
       DynamicSupervisor.start_child(
         MomSupervisor, {DynamicSupervisor, strategy: :one_for_one, name: String.to_atom(board<>"BoardSupervisor")}

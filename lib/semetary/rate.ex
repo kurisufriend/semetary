@@ -1,9 +1,6 @@
 defmodule Semetary.Rate do
   use GenServer
 
-  @time 1000
-  @global_time 10
-
   def start_link(last_activity_map) do
     GenServer.start_link(__MODULE__, last_activity_map, name: :ratelimiter)
   end
@@ -20,8 +17,8 @@ defmodule Semetary.Rate do
       |> Map.get_and_update(pool, fn cur ->
         if cur != nil, do: {cur, cur}, else: {cur, :os.system_time(:millisecond)}
       end)
-    if :os.system_time(:millisecond) - Map.get(last_activity_map, pool) > @time
-    and :os.system_time(:millisecond) - Map.get(last_activity_map, "global") > @global_time do
+    if :os.system_time(:millisecond) - Map.get(last_activity_map, pool) > Application.fetch_env!(:semetary, :per_pool_rate)
+    and :os.system_time(:millisecond) - Map.get(last_activity_map, "global") > Application.fetch_env!(:semetary, :global_rate) do
       last_activity_map = (Map.put(last_activity_map, pool, :os.system_time(:millisecond)) |>
       Map.put("global", :os.system_time(:millisecond)))
       {:reply, :goahead, last_activity_map}
