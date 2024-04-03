@@ -55,7 +55,7 @@ defmodule Semetary.BoardGS do
     if res.status != 404 do
       res.body |> Enum.each(fn id ->
         if (pid = Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS"))) != nil do
-          IO.puts("slaughtering this archived thing "<>to_string(id))
+          IO.puts("slaughtering this archived thing "<>state.board<>to_string(id))
           DynamicSupervisor.terminate_child(String.to_atom(state.board<>"BoardSupervisor"), Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS")))
           Process.exit(pid, :fourohfour)
         end
