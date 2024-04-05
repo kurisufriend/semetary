@@ -23,8 +23,9 @@ defmodule Semetary.Malsurrector do
     }
   }
 
+
   def init() do
-    path = "./data"
+    path = Application.fetch_env!(:semetary, :data_path)
     mkdir_if_needed!(path)
     @endpoints |> Map.keys |> Enum.each(fn endpoint ->
       mkdir_if_needed!(path<>"/"<>endpoint)
@@ -62,7 +63,8 @@ defmodule Semetary.Malsurrector do
 
   def handle_vocaroo(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
-    unless File.exists?("./data/vocaroo/"<>id<>".mp3") do
+    path = Application.fetch_env!(:semetary, :data_path)<>"/vocaroo/"
+    unless File.exists?(path<>id<>".mp3") do
       heads = %{
         "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Encoding" => "gzip, deflate, br",
@@ -79,8 +81,8 @@ defmodule Semetary.Malsurrector do
       }
       voccy = Semetary.Rate.rated_get!("https://media1.vocaroo.com/mp3/"<>id, :noproxy, headers: heads)
       if voccy.status == 200 do
-        write_if_new!("./data/vocaroo/"<>id<>".mp3", voccy.body)
-        write_if_new!("./data/vocaroo/"<>id<>".mp3.meta", Jason.encode!(post))
+        write_if_new!(path<>id<>".mp3", voccy.body)
+        write_if_new!(path<>id<>".mp3.meta", Jason.encode!(post))
       else
         raise "o shit vocaroo not 200 #{link}"
       end
@@ -93,7 +95,7 @@ defmodule Semetary.Malsurrector do
     newlink = link |> String.split("#", trim: true) |> hd
     rent = Semetary.Rate.rated_get!(newlink<>"/raw", :rentry)
     if rent.status == 200 do
-      prospect = "./data/rentry/"<>id<>".txt"
+      prospect = Application.fetch_env!(:semetary, :data_path)<>"/rentry/"<>id<>".txt"
       if File.exists?(prospect<>".latest") do
         if File.read!(prospect<>".latest") != rent.body do
           File.write!(prospect<>".#{System.os_time}", rent.body)
@@ -112,11 +114,12 @@ defmodule Semetary.Malsurrector do
 
   def handle_litter(link, post) do
     id = link |> String.split("/", trim: true) |> List.last
-    unless File.exists?("./data/litter.catbox.moe/"<>id) do
+    path = Application.fetch_env!(:semetary, :data_path)<>"/litter.catbox.moe/"
+    unless File.exists?(path<>id) do
       litter = Semetary.Rate.rated_get!(link, :litter)
       if litter.status == 200 do
-        write_if_new!("./data/litter.catbox.moe/"<>id, litter.body)
-        write_if_new!("./data/litter.catbox.moe/"<>id<>".meta", Jason.encode!(post))
+        write_if_new!(path<>id, litter.body)
+        write_if_new!(path<>id<>".meta", Jason.encode!(post))
       else
         raise "OH MY GOD THEY KILLED LITTERBOX #{link}"
       end
@@ -125,7 +128,8 @@ defmodule Semetary.Malsurrector do
 
   def handle_soundgasm(link, post) do
     [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
-    unless user == "u" or File.exists?("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a") do
+    path = Application.fetch_env!(:semetary, :data_path)<>"/soundgasm.net/"
+    unless user == "u" or File.exists?(path<>user<>"/"<>id<>".m4a") do
       page = Semetary.Rate.rated_get!(link, :soundgasm)
       if page.status == 200 do
         IO.puts(link)
@@ -133,9 +137,9 @@ defmodule Semetary.Malsurrector do
         |> hd
         |> Semetary.Rate.rated_get!(:soundgasm))
         if gasm.status == 200 do
-          mkdir_if_needed!("./data/soundgasm.net/"<>user)
-          write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a", gasm.body)
-          write_if_new!("./data/soundgasm.net/"<>user<>"/"<>id<>".m4a.meta", Jason.encode!(post))
+          mkdir_if_needed!(path<>user)
+          write_if_new!(path<>user<>"/"<>id<>".m4a", gasm.body)
+          write_if_new!(path<>user<>"/"<>id<>".m4a.meta", Jason.encode!(post))
         else
           raise "failed to gasm the sound"
         end
