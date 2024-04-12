@@ -116,7 +116,7 @@ defmodule Semetary.Malsurrector do
     id = link |> String.split("/", trim: true) |> List.last
     path = Application.fetch_env!(:semetary, :data_path)<>"/litter.catbox.moe/"
     unless File.exists?(path<>id) do
-      litter = Semetary.Rate.rated_get!(link, :litter)
+      litter = Semetary.Rate.rated_get!(link, :noproxy, raw: true)
       if litter.status == 200 do
         write_if_new!(path<>id, litter.body)
         write_if_new!(path<>id<>".meta", Jason.encode!(post))
