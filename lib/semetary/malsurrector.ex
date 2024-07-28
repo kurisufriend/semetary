@@ -79,7 +79,7 @@ defmodule Semetary.Malsurrector do
         "Upgrade-Insecure-Requests" => "1",
         "User-Agent" => "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0"
       }
-      voccy = Semetary.Rate.rated_get!("https://media1.vocaroo.com/mp3/"<>id, :noproxy, headers: heads)
+      voccy = Semetary.Rate.rated_get!("https://media1.vocaroo.com/mp3/"<>id, Application.fetch_env!(:semetary, :data_proxy_map)["vocaroo"], headers: heads)
       if voccy.status == 200 do
         write_if_new!(path<>id<>".mp3", voccy.body)
         write_if_new!(path<>id<>".mp3.meta", Jason.encode!(post))
@@ -93,7 +93,7 @@ defmodule Semetary.Malsurrector do
     id = link |> String.split("/", trim: true) |> List.last
       |> String.split("#", trim: true) |> hd
     newlink = link |> String.split("#", trim: true) |> hd
-    rent = Semetary.Rate.rated_get!(newlink<>"/raw", :rentry)
+    rent = Semetary.Rate.rated_get!(newlink<>"/raw", Application.fetch_env!(:semetary, :data_proxy_map)["rentry"])
     if rent.status == 200 do
       prospect = Application.fetch_env!(:semetary, :data_path)<>"/rentry/"<>id<>".txt"
       if File.exists?(prospect<>".latest") do
@@ -116,7 +116,7 @@ defmodule Semetary.Malsurrector do
     id = link |> String.split("/", trim: true) |> List.last
     path = Application.fetch_env!(:semetary, :data_path)<>"/litter.catbox.moe/"
     unless File.exists?(path<>id) do
-      litter = Semetary.Rate.rated_get!(link, :noproxy, raw: true)
+      litter = Semetary.Rate.rated_get!(link, Application.fetch_env!(:semetary, :data_proxy_map)["litter"], raw: true)
       if litter.status == 200 do
         write_if_new!(path<>id, litter.body)
         write_if_new!(path<>id<>".meta", Jason.encode!(post))
@@ -130,12 +130,12 @@ defmodule Semetary.Malsurrector do
     [user, id] = link |> String.split("/", trim: true) |> Enum.take(-2)
     path = Application.fetch_env!(:semetary, :data_path)<>"/soundgasm.net/"
     unless user == "u" or File.exists?(path<>user<>"/"<>id<>".m4a") do
-      page = Semetary.Rate.rated_get!(link, :soundgasm)
+      page = Semetary.Rate.rated_get!(link, Application.fetch_env!(:semetary, :data_proxy_map)["soundgasm"])
       if page.status == 200 do
         IO.puts(link)
         gasm = (Regex.run(~r/(|https:\/\/|http:\/\/)(media.soundgasm.net)\/[^ \n<>\"\\\)\()]*.m4a/, page.body)
         |> hd
-        |> Semetary.Rate.rated_get!(:soundgasm))
+        |> Semetary.Rate.rated_get!(Application.fetch_env!(:semetary, :data_proxy_map)["soundgasm"]))
         if gasm.status == 200 do
           mkdir_if_needed!(path<>user)
           write_if_new!(path<>user<>"/"<>id<>".m4a", gasm.body)

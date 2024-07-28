@@ -56,7 +56,7 @@ defmodule Semetary.BoardGS do
       res.body |> Enum.each(fn id ->
         if (pid = Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS"))) != nil do
           IO.puts("slaughtering this archived thing "<>state.board<>to_string(id))
-          DynamicSupervisor.terminate_child(String.to_atom(state.board<>"BoardSupervisor"), Process.whereis(String.to_atom(state.board<>to_string(id)<>"ThreadGS")))
+          DynamicSupervisor.terminate_child(String.to_atom(state.board<>"BoardSupervisor"), pid)
           Process.exit(pid, :fourohfour)
         end
       end)
@@ -66,7 +66,7 @@ defmodule Semetary.BoardGS do
 
   def go_forever(proc) do
     send(proc, :update)
-    Process.sleep(60_000 * 5)
+    Process.sleep(Application.fetch_env!(:semetary, :board_refresh_rate))
     go_forever(proc)
   end
 

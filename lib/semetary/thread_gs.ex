@@ -6,7 +6,7 @@ defmodule Semetary.ThreadGS do
   end
 
   def memento_mori(board, id) do
-    Process.sleep(60_000 * 5)
+    Process.sleep(Application.fetch_env!(:semetary, :fourohfour_check_rate))
     res = Semetary.Imageboard.thread(board, id)
     if res.status == 404 do
       IO.puts("IM LEAVING BYE 404_4_sure"<>board<>to_string(id))
