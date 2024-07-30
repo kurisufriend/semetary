@@ -1,6 +1,7 @@
 defmodule Semetary.Imageboard do
 
   @baseurl "https://a.4cdn.org"
+  @scrapebase "https://boards.4chan.org/"
   def wget(uri, pool \\ :default) do
     if !pool or GenServer.call(:ratelimiter, {:activate, pool}) == :goahead do
 
@@ -41,8 +42,23 @@ defmodule Semetary.Imageboard do
     wget(@baseurl<>"/"<>board<>"/archive.json", String.to_atom(board<>"_board_pool"))
   end
   def thread(board, id) do
-    wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", false)
+    if Application.fetch_env!(:semetary, :use_api) do
+      wget(@baseurl<>"/"<>board<>"/thread/"<>to_string(id)<>".json", String.to_atom(board<>"_thread_pool"))
+    else
+      res = wget(@scrapebase<>"/"<>board<>"/thread/"<>to_string(id), String.to_atom(board<>"_thread_pool"))
+      if res.status == 200 do
+        html = Floki.parse_document!(res.body)
+        res = %{res | body: %{"archived" => (if html |> Floki.find(".closed") |> Floki.text == "Thread archived.\nYou cannot reply anymore.", do: 1, else: "no lol")}}
+        %{res | body: Map.put(res.body, "posts", Floki.find(html, ".post") |> Enum.map(fn p ->
+          %{
+            "no" => p |> Floki.find(".postNum") |> hd |> Floki.find("a") |> List.last |> Floki.text,
+            "com" => p |> Floki.find(".postMessage") |> Floki.text
+          }
+         end))}
+      end
+    end
   end
+  @spec catalog(binary()) :: Req.Response.t()
   def catalog(board) do
     wget(@baseurl<>"/"<>board<>"/catalog.json", String.to_atom(board<>"_board_pool"))
   end

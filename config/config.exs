@@ -1,5 +1,7 @@
 import Config
 
+config :floki, :html_parser, Floki.HTMLParser.Html5ever
+
 # the 4chan API has a reccomended rate limit of one second per GET request.
 # the preloaded config values here do not use any proxies, and fully obey that ordinance,
 #  meaning that, for all 78 boards, assuming 150 threads per board, it will take you a little over
@@ -16,7 +18,8 @@ config :semetary,
   #  how often that pool can make requests.
   # note that it is safe to lower this value below 1_000 if you're chugging with a reasonable number of
   #  proxies.
-  per_pool_rate: 1_000,
+  # it is now safe to use 300 if you have use_api set to `false' ;^)
+  per_pool_rate: 300,
 
   # this determines the base floor on your machine making requests /in general/.
   global_rate: 10,
@@ -46,4 +49,7 @@ config :semetary,
 
   # use the proxies provided in ./resources/proxies.txt
   # if this is off, no requests will be routed through a proxy.
-  use_proxies: false
+  use_proxies: false,
+
+  # use the 4chan API instead of page-scraping. applies (for now) only to the thread endpoint.
+  use_api: false
