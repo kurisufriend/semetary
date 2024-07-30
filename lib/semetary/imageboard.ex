@@ -1,7 +1,7 @@
 defmodule Semetary.Imageboard do
 
   @baseurl "https://a.4cdn.org"
-  @scrapebase "https://boards.4chan.org/"
+  @scrapebase "https://boards.4chan.org"
   def wget(uri, pool \\ :default) do
     if !pool or GenServer.call(:ratelimiter, {:activate, pool}) == :goahead do
 
